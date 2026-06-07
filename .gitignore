@@ -1,0 +1,14 @@
+# Environment files
+.env
+backend/.env
+ai-services/.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# VS Code
+.vscode/
