@@ -2,9 +2,9 @@ import os
 import json
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from PIL import Image
 from pydantic import BaseModel
-
 from google import genai
 
 # === Load Environment Variables ====
@@ -32,6 +32,7 @@ app = FastAPI(
 class ComplaintRequest(BaseModel):
     title: str
     description: str
+    imageUrl: str | None = None
 
 
 # === AI Functions === 
@@ -52,6 +53,8 @@ def analyze_complaint_with_ai(title: str, description: str):
     Return ONLY valid JSON in this exact format:
 
     {{
+        
+        "detectedLanguage": "",
         "category": "",
         "categoryReason": "",
 
@@ -79,6 +82,21 @@ def analyze_complaint_with_ai(title: str, description: str):
     }}
 
     RULES:
+
+    0. Detect the language of the complaint.
+
+    Return language name such as:
+
+    - English
+    - Hindi
+    - Punjabi
+    - Tamil
+    - Telugu
+    - Bengali
+    - Marathi
+    - Gujarati
+
+Generate ALL outputs in the SAME language as the complaint.
 
     1. Category must be one of:
        - Road Maintenance
@@ -139,12 +157,83 @@ def analyze_complaint_with_ai(title: str, description: str):
 
     9. Recommend the most suitable department and explain why.
 
+
+    detectedLanguage is mandatory.
+    Do not omit any field.
     Return ONLY JSON.
     """
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt
+    )
+
+    text = response.text.strip()
+
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
+    text = text.strip()
+
+    return json.loads(text)
+
+def analyze_image_with_ai(image):
+
+    prompt = """
+    You are an expert civic infrastructure inspector.
+
+    Analyze the image and return ONLY valid JSON.
+
+    {
+    "detectedIssues": [],
+    "category": "",
+    "priority": "",
+    "recommendedDepartment": "",
+    "imageSummary": "",
+    "visualEvidence": "",
+    "confidenceScore": 0.0
+    }
+
+    Severity must be:
+    - Low
+    - Medium
+    - High
+    - Critical
+
+    Category must be one of:
+
+    - Road Maintenance
+    - Waste Management
+    - Water Supply
+    - Street Lighting
+    - Drainage
+    - Public Safety
+    - Infrastructure
+
+    Priority must be:
+
+    - Low
+    - Medium
+    - High
+    - Critical
+
+    Recommend the most appropriate government department.
+
+    Confidence score must be between 0 and 1.
+
+    Focus only on civic issues such as:
+
+    - Potholes
+    - Road Damage
+    - Water Leakage
+    - Garbage Accumulation
+    - Broken Street Lights
+    - Drainage Problems
+    - Public Infrastructure Damage
+    """
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[prompt, image]
     )
 
     text = response.text.strip()
@@ -177,6 +266,48 @@ async def analyze_complaint(request: ComplaintRequest):
 
     except Exception as e:
 
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.post("/analyze-image")
+async def analyze_image(file: UploadFile = File(...)):
+
+    try:
+
+        image = Image.open(file.file)
+        result = analyze_image_with_ai(image)
+        return result
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.post("/analyze-complete")
+async def analyze_complete(
+    title: str,
+    description: str,
+    file: UploadFile = File(...)
+):
+
+    try:
+        image = Image.open(file.file)
+        text_result = analyze_complaint_with_ai(
+            title,
+            description
+        )
+        image_result = analyze_image_with_ai(
+            image
+        )
+        return {
+            "textAnalysis": text_result,
+            "imageAnalysis": image_result
+        }
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=str(e)
