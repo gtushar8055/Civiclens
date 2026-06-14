@@ -2,7 +2,7 @@ import os
 import json
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File , Form
 from PIL import Image
 from pydantic import BaseModel
 from google import genai
@@ -24,6 +24,16 @@ client = genai.Client(api_key=api_key)
 
 app = FastAPI(
     title="Civiclens AI Service"
+)
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -85,34 +95,79 @@ def analyze_complaint_with_ai(title: str, description: str):
 
     0. Detect the language of the complaint.
 
-    Return language name such as:
+        Support all major Indian languages.
+        Return the detected language name exactly as its English language name.
+        Examples include (but are not limited to):
 
-    - English
-    - Hindi
-    - Punjabi
-    - Tamil
-    - Telugu
-    - Bengali
-    - Marathi
-    - Gujarati
+        - English
+        - Hindi
+        - Punjabi
+        - Tamil
+        - Telugu
+        - Kannada
+        - Malayalam
+        - Marathi
+        - Bengali
+        - Gujarati
+        - Odia
+        - Assamese
+        - Urdu
 
-Generate ALL outputs in the SAME language as the complaint.
+        Generate EVERY output entirely in the detected language.
+        Never mix multiple languages in the same response.
+        Never translate the response into English unless the original complaint is in English.
 
-    1. Category must be one of:
-       - Road Maintenance
-       - Waste Management
-       - Water Supply
-       - Street Lighting
-       - Drainage
-       - Public Safety
-       - Infrastructure
-       - Other
+        Language Consistency Rules:
 
-    2. Priority:
-       - Low
-       - Medium
-       - High
-       - Critical
+        All generated fields must be in the detected language, including:
+
+        - Category
+        - Category Reason
+        - Priority
+        - Priority Reason
+        - Summary
+        - Entity Types
+        - Department Name
+        - Department Reason
+        - Complaint Subject
+        - Complaint Body
+        - Complaint Closing
+
+        Do not leave any field in English unless the complaint itself is in English.
+
+   1. Category must represent one of the following concepts:
+
+        - Road Maintenance
+        - Waste Management
+        - Water Supply
+        - Street Lighting
+        - Drainage
+        - Public Safety
+        - Infrastructure
+        - Other
+
+        Return ONLY the translated category name in the detected language.
+
+        Examples:
+        English → Waste Management
+        Hindi → कचरा प्रबंधन
+        Tamil → கழிவு மேலாண்மை
+        Telugu → వ్యర్థ నిర్వహణ
+
+    2. Return the translated priority level in the detected language.
+
+    Priority concepts are:
+
+        - Low
+        - Medium
+        - High
+        - Critical
+
+        Examples:
+        English → Critical
+        Hindi → अत्यंत उच्च
+        Tamil → மிக அவசரம்
+        Telugu → అత్యవసరం
 
     3. CategoryReason should be 20-40 words.
 
@@ -130,37 +185,63 @@ Generate ALL outputs in the SAME language as the complaint.
 
     6. Extract important entities.
 
+    Entity Requirements:
+
+    - Extract between 3 and 10 meaningful entities whenever possible.
+    - Each entity must contain both:
+    - entity
+    - type
+    - Generate both entity and type in the detected language.
+    - Do not translate entity types into English unless the original complaint is in English.
+    - Avoid duplicate entities.
+    - Prefer meaningful entity types such as:
+    - Location
+    - Infrastructure
+    - Affected Group
+    - Time
+    - Environmental Factor
+    - Safety Risk
+    - Government Asset
+
     7. Generate a detailed complaint letter.
 
-    8. Complaint letter requirements:
+    8. Complaint Letter Requirements:
 
-     - Use formal and professional language.
-     - Generate a detailed complaint letter.
-     - The body should contain at least 2 meaningful paragraphs.
-     - First paragraph should explain the issue in detail.
-     - Second paragraph should explain the impact on citizens and request urgent action.
-     - Mention location if available.
-     - Request prompt action from the concerned authority.
-     - Do NOT include any fake personal information.
-     - Keep placeholders for future user details.
-     - Generate response in the same language as the complaint.
+    - Use formal, official and professional language.
+    - Generate a detailed complaint letter.
+    - The body must contain at least two meaningful paragraphs.
+    - The first paragraph should clearly explain the issue.
+    - The second paragraph should explain its impact on citizens and request prompt action.
+    - Mention the location if available.
+    - Do NOT include any fake personal information.
+    - Keep placeholders for future citizen details.
+    - Generate the ENTIRE complaint in the detected language.
+    - Never mix multiple languages in the complaint.
+    - The subject, body, closing, placeholders and every sentence must be in the same language.
 
-       End with:
+        Closing Instructions:
 
-       Kindly look into this matter and take the necessary action at the earliest.
+        End the complaint using an appropriate formal closing in the detected language.
 
-       Yours faithfully,
+        For example:
 
-       [Citizen Name]
-       Address: [Citizen Address]
-       Phone: [Citizen Phone Number]
+        If English:
+        Kindly look into this matter and take the necessary action at the earliest.
 
-    9. Recommend the most suitable department and explain why.
+        Yours faithfully,
 
+        [Citizen Name]
+        Address: [Citizen Address]
+        Phone: [Citizen Phone Number]
+
+        For every other language (Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Odia, Assamese, Urdu, etc.), generate the complete closing naturally and professionally in that same language, including the citizen detail placeholders.
+
+    9. Recommend the most suitable government department and explain why.
 
     detectedLanguage is mandatory.
     Do not omit any field.
-    Return ONLY JSON.
+    Return ONLY valid JSON.
+    Do not include markdown, explanations or code fences.
     """
 
     response = client.models.generate_content(
@@ -176,48 +257,35 @@ Generate ALL outputs in the SAME language as the complaint.
 
     return json.loads(text)
 
-def analyze_image_with_ai(image):
+def analyze_image_with_ai(image , language):
 
-    prompt = """
+    prompt = f"""
+    You are an expert civic infrastructure inspector.
+    The detected complaint language is:
+    {language}
+    Generate EVERY field strictly in this language.
+    Never mix multiple languages.
+
+    Return ONLY valid JSON.
     You are an expert civic infrastructure inspector.
 
     Analyze the image and return ONLY valid JSON.
 
-    {
+    {{
     "detectedIssues": [],
-    "category": "",
-    "priority": "",
-    "recommendedDepartment": "",
     "imageSummary": "",
     "visualEvidence": "",
     "confidenceScore": 0.0
-    }
+    }}
 
-    Severity must be:
-    - Low
-    - Medium
-    - High
-    - Critical
+    Return severity in the detected language.
 
-    Category must be one of:
-
-    - Road Maintenance
-    - Waste Management
-    - Water Supply
-    - Street Lighting
-    - Drainage
-    - Public Safety
-    - Infrastructure
-
-    Priority must be:
-
-    - Low
-    - Medium
-    - High
-    - Critical
-
-    Recommend the most appropriate government department.
-
+        Concepts:
+        Low
+        Medium
+        High
+        Critical
+        
     Confidence score must be between 0 and 1.
 
     Focus only on civic issues such as:
@@ -277,7 +345,7 @@ async def analyze_image(file: UploadFile = File(...)):
     try:
 
         image = Image.open(file.file)
-        result = analyze_image_with_ai(image)
+        result = analyze_image_with_ai(image , "English")
         return result
 
     except Exception as e:
@@ -289,8 +357,8 @@ async def analyze_image(file: UploadFile = File(...)):
     
 @app.post("/analyze-complete")
 async def analyze_complete(
-    title: str,
-    description: str,
+    title: str = Form(...),
+    description: str = Form(...),
     file: UploadFile = File(...)
 ):
 
@@ -300,8 +368,10 @@ async def analyze_complete(
             title,
             description
         )
+        language = text_result["detectedLanguage"]
         image_result = analyze_image_with_ai(
-            image
+            image, 
+            language
         )
         return {
             "textAnalysis": text_result,
