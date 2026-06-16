@@ -1,26 +1,59 @@
 import os
 import json
+import time 
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, File , Form
 from PIL import Image
 from pydantic import BaseModel
 from google import genai
+from google.genai.errors import ServerError , ClientError
+
 
 # === Load Environment Variables ====
 load_dotenv()
 
-api_key = os.getenv("GEMINI_API_KEY")
+API_KEYS = [
+    os.getenv("GEMINI_API_KEY_1"),
+    os.getenv("GEMINI_API_KEY_2"),
+    os.getenv("GEMINI_API_KEY_3"),
+]
 
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY not found in .env file")
+API_KEYS = [key for key in API_KEYS if key]
 
-
-# === Gemini Client ===
-client = genai.Client(api_key=api_key)
+if not API_KEYS:
+    raise RuntimeError("No Gemini API Keys found in .env")
 
 
 # === FastAPI App === 
+
+def generate_with_fallback(contents):
+    last_error = None
+    for index, key in enumerate(API_KEYS):
+        try:
+            print(f"\nUsing Gemini API Key {index+1}")
+            client = genai.Client(api_key=key)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=contents
+            )
+            print(f"Success using Key {index+1}")
+            return response
+        except ClientError as e:
+            error = str(e)
+            if "429" in error or "RESOURCE_EXHAUSTED" in error:
+                print(f"Quota exhausted on Key {index+1}")
+                last_error = e
+                continue
+            raise
+        except ServerError as e:
+            print(f"Server busy on Key {index+1}")
+            last_error = e
+            continue
+    if last_error:
+        raise last_error
+
+    raise RuntimeError("No Gemini API keys configured.")
 
 app = FastAPI(
     title="Civiclens AI Service"
@@ -63,8 +96,8 @@ def analyze_complaint_with_ai(title: str, description: str):
     Return ONLY valid JSON in this exact format:
 
     {{
-        
         "detectedLanguage": "",
+
         "category": "",
         "categoryReason": "",
 
@@ -79,6 +112,17 @@ def analyze_complaint_with_ai(title: str, description: str):
                 "type": ""
             }}
         ],
+
+        "suggestedResolution": [],
+
+        "estimatedResolutionTime": "",
+
+        "citizenAdvisory": {{
+            "dos": [],
+            "donts": []
+        }},
+
+        "potentialRisks": [],
 
         "draftComplaint": {{
             "subject": "",
@@ -203,6 +247,68 @@ def analyze_complaint_with_ai(title: str, description: str):
     - Safety Risk
     - Government Asset
 
+    6.5 Suggested Resolution
+
+    Generate 3 to 5 practical action points that should be taken by the concerned department.
+
+    Requirements:
+
+    - Return every point in the detected language.
+    - Keep every point short and actionable.
+    - Focus on realistic government actions.
+    - Avoid unnecessary explanations.
+
+    6.6 Estimated Resolution Time
+
+    Estimate a realistic resolution time based on the issue type and severity.
+
+    Examples:
+
+    Street Light:
+    24-48 Hours
+
+    Garbage:
+    1-2 Days
+
+    Water Leakage:
+    Immediate
+
+    Potholes:
+    2-5 Days
+
+    Drainage:
+    3-7 Days
+
+    Return the estimate in the detected language.
+
+    6.7 Citizen Advisory
+
+    Generate:
+
+    - 3 to 5 Do's
+    - 3 to 5 Don'ts
+
+    Requirements:
+
+    - Generate everything in the detected language.
+    - Keep every point practical.
+    - Focus on citizen safety until the issue is resolved.
+    - Avoid repeating the same advice.
+
+    6.8 Potential Risks
+
+    Generate 3 to 5 possible risks if the complaint is ignored.
+
+    Examples:
+
+    - Road Accidents
+    - Disease Spread
+    - Traffic Congestion
+    - Water Contamination
+    - Fire Hazard
+
+    Return every risk in the detected language.
+
     7. Generate a detailed complaint letter.
 
     8. Complaint Letter Requirements:
@@ -244,10 +350,24 @@ def analyze_complaint_with_ai(title: str, description: str):
     Do not include markdown, explanations or code fences.
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    MAX_RETRIES = 3
+
+    for attempt in range(MAX_RETRIES):
+
+        try:
+
+            response = generate_with_fallback(prompt)
+
+            break
+
+        except ServerError:
+
+            if attempt == MAX_RETRIES - 1:
+                raise
+
+            print(f"Gemini busy... Retrying ({attempt + 1}/{MAX_RETRIES})")
+
+            time.sleep(5)
 
     text = response.text.strip()
 
@@ -255,7 +375,16 @@ def analyze_complaint_with_ai(title: str, description: str):
     text = text.replace("```", "")
     text = text.strip()
 
-    return json.loads(text)
+    print("\n================ GEMINI TEXT ================\n")
+    print(text)
+    print("\n=============================================\n")
+
+    try:
+        return json.loads(text)
+    except Exception as e:
+        print("JSON ERROR :", e)
+        print(text)
+        raise
 
 def analyze_image_with_ai(image , language):
 
@@ -299,10 +428,26 @@ def analyze_image_with_ai(image , language):
     - Public Infrastructure Damage
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[prompt, image]
-    )
+    MAX_RETRIES = 3
+
+    for attempt in range(MAX_RETRIES):
+
+        try:
+
+            response = generate_with_fallback(
+                [prompt, image]
+            )
+
+            break
+
+        except ServerError:
+
+            if attempt == MAX_RETRIES - 1:
+                raise
+
+            print(f"Gemini busy... Retrying ({attempt + 1}/{MAX_RETRIES})")
+
+            time.sleep(5)
 
     text = response.text.strip()
 
@@ -310,7 +455,16 @@ def analyze_image_with_ai(image , language):
     text = text.replace("```", "")
     text = text.strip()
 
-    return json.loads(text)
+    print("\n================ GEMINI TEXT ================\n")
+    print(text)
+    print("\n=============================================\n")
+
+    try:
+        return json.loads(text)
+    except Exception as e:
+        print("JSON ERROR :", e)
+        print(text)
+        raise
 
 # === Routes ===
 @app.get("/")
@@ -377,7 +531,30 @@ async def analyze_complete(
             "textAnalysis": text_result,
             "imageAnalysis": image_result
         }
+    except ClientError as e:
+
+        error = str(e)
+
+        if "429" in error or "RESOURCE_EXHAUSTED" in error:
+
+            raise HTTPException(
+                status_code=429,
+                detail="All available AI servers have exhausted their quota. Please try again after a few minutes."
+            )
+
+        raise HTTPException(
+            status_code=400,
+            detail=error
+        )
+    except ServerError:
+
+        raise HTTPException(
+            status_code=503,
+            detail="AI servers are currently busy. Please wait a few moments and try again."
+        )
+
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
