@@ -10,7 +10,8 @@ The project follows a **production-ready microservice architecture**, where the 
 
 # 🏛️ CivicLens — Overview
 
-<img width="1254" height="1254" alt="image" src="https://github.com/user-attachments/assets/f8d715ee-c8c1-44c5-95af-43bf1eb2a73d" />
+<img width="1524" height="851" alt="image" src="https://github.com/user-attachments/assets/af8af4c7-fd83-4291-b60f-be683097620c" />
+
 
 
 # 🏛️ CivicLens — Architechture
