@@ -6,7 +6,7 @@ import ComplaintForm from "./pages/ComplaintForm";
 import Results from "./pages/Results";
 import History from "./pages/History";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Signup from "./pages/SignUp";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
