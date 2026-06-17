@@ -24,9 +24,6 @@ function Results() {
       setLoading(false);
       return;
     }
-
-    fetchComplaint();
-
     fetchComplaint();
   }, []);
 
@@ -60,9 +57,7 @@ function Results() {
 
   const text = analysis.textAnalysis;
   const image = analysis.imageAnalysis;
-  const uploadedImage = !id
-  ? sessionStorage.getItem("uploadedImage")
-  : null;
+  const uploadedImage = !id ? sessionStorage.getItem("uploadedImage") : null;
 
   const saveComplaint = async () => {
     console.log("SAVE BUTTON CLICKED");
@@ -417,149 +412,196 @@ function Results() {
             </div>
           </div>
 
-
-        {!id && (
-          <div
-            className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
+          {!id && (
+            <div
+              className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
+                isDark
+                  ? "bg-slate-800/50 border-slate-700"
+                  : "bg-white/70 border-slate-200"
+              }`}
             >
-              Uploaded Image
-            </h2>
-            {uploadedImage ? (
-              <img
-                src={uploadedImage}
-                alt="Uploaded Complaint"
-                className={`rounded-xl w-full max-h-[500px] object-cover border-2 ${
-                  isDark ? "border-slate-700" : "border-slate-300"
-                }`}
-              />
-            ) : (
-              <div
-                className={`p-10 rounded-xl text-center ${
-                  isDark
-                    ? "bg-slate-800 text-slate-400"
-                    : "bg-slate-100 text-slate-500"
-                }`}
+              <h2
+                className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
               >
-                📷 Image preview is available only for the current session.
-              </div>
-            )}
-          </div>
-        )}
+                Uploaded Image
+              </h2>
+              {uploadedImage ? (
+                <img
+                  src={uploadedImage}
+                  alt="Uploaded Complaint"
+                  className={`rounded-xl w-full max-h-[500px] object-cover border-2 ${
+                    isDark ? "border-slate-700" : "border-slate-300"
+                  }`}
+                />
+              ) : (
+                <div
+                  className={`p-10 rounded-xl text-center ${
+                    isDark
+                      ? "bg-slate-800 text-slate-400"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  📷 Image preview is available only for the current session.
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Vision Analysis */}
 
-          <div
-            className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
+          {image ? (
+            <div
+              className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
+                isDark
+                  ? "bg-slate-800/50 border-slate-700"
+                  : "bg-white/70 border-slate-200"
+              }`}
             >
-              Analysis from the Image
-            </h2>
+              <h2
+                className={`text-2xl font-bold mb-6 ${
+                  isDark ? "text-white" : "text-slate-900"
+                }`}
+              >
+                Analysis from the Image
+              </h2>
 
-            <div className="space-y-5">
-              <div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  AI Image Summary
-                </h3>
+              <div className="space-y-5">
+                <div>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    AI Image Summary
+                  </h3>
 
-                <p
-                  className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                >
-                  {image.imageSummary}
-                </p>
-              </div>
-
-              <div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  Detected Issues
-                </h3>
-
-                <ul className="space-y-3">
-                  {image.detectedIssues.map((issue, index) => (
-                    <li
-                      key={index}
-                      className={`rounded-xl p-4 border transition-all ${
-                        isDark
-                          ? "bg-slate-700/50 border-slate-600"
-                          : "bg-slate-100 border-slate-300"
-                      }`}
-                    >
-                      <div
-                        className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
-                      >
-                        {issue.type || issue.description}
-                      </div>
-
-                      <div
-                        className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}
-                      >
-                        Severity : {issue.severity}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  Visual Evidence
-                </h3>
-
-                <p
-                  className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                >
-                  {image.visualEvidence}
-                </p>
-              </div>
-
-              <div>
-                <h3
-                  className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}
-                >
-                  AI Confidence
-                </h3>
-
-                <div
-                  className={`w-full rounded-full h-4 border ${
-                    isDark
-                      ? "bg-slate-700 border-slate-600"
-                      : "bg-slate-300 border-slate-400"
-                  }`}
-                >
-                  <div
-                    className="bg-gradient-to-r from-green-400 to-green-500 h-4 rounded-full transition-all"
-                    style={{
-                      width: `${image.confidenceScore * 100}%`,
-                    }}
-                  />
+                  <p
+                    className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    {image.imageSummary}
+                  </p>
                 </div>
 
-                <p
-                  className={`mt-2 font-semibold ${isDark ? "text-green-400" : "text-green-600"}`}
-                >
-                  {(image.confidenceScore * 100).toFixed(0)}% Confidence
-                </p>
+                <div>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    Detected Issues
+                  </h3>
+
+                  <ul className="space-y-3">
+                    {image.detectedIssues.map((issue, index) => (
+                      <li
+                        key={index}
+                        className={`rounded-xl p-4 border ${
+                          isDark
+                            ? "bg-slate-700/50 border-slate-600"
+                            : "bg-slate-100 border-slate-300"
+                        }`}
+                      >
+                        <div
+                          className={`font-semibold ${
+                            isDark ? "text-white" : "text-slate-900"
+                          }`}
+                        >
+                          {issue.type || issue.description}
+                        </div>
+
+                        <div
+                          className={`text-sm mt-1 ${
+                            isDark ? "text-slate-400" : "text-slate-600"
+                          }`}
+                        >
+                          Severity : {issue.severity}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    Visual Evidence
+                  </h3>
+
+                  <p
+                    className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    {image.visualEvidence}
+                  </p>
+                </div>
+
+                <div>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    AI Confidence
+                  </h3>
+
+                  <div
+                    className={`w-full rounded-full h-4 border ${
+                      isDark
+                        ? "bg-slate-700 border-slate-600"
+                        : "bg-slate-300 border-slate-400"
+                    }`}
+                  >
+                    <div
+                      className="bg-gradient-to-r from-green-400 to-green-500 h-4 rounded-full"
+                      style={{
+                        width: `${image.confidenceScore * 100}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p
+                    className={`mt-2 font-semibold ${
+                      isDark ? "text-green-400" : "text-green-600"
+                    }`}
+                  >
+                    {(image.confidenceScore * 100).toFixed(0)}% Confidence
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div
+              className={`mt-8 p-8 rounded-2xl border ${
+                isDark
+                  ? "bg-slate-800/50 border-slate-700"
+                  : "bg-white/70 border-slate-200"
+              }`}
+            >
+              <h2
+                className={`text-2xl font-bold mb-4 ${
+                  isDark ? "text-white" : "text-slate-900"
+                }`}
+              >
+                Visual Evidence
+              </h2>
+
+              <p
+                className={`${isDark ? "text-slate-300" : "text-slate-700"} leading-8`}
+              >
+                ⚠️ Visual evidence analysis is temporarily unavailable due to
+                high AI server load.
+                <br />
+                <br />
+                The complaint has been successfully analyzed using advanced
+                Natural Language Processing (NLP), including language detection,
+                priority assessment, department recommendation, entity
+                extraction, risk identification, citizen advisory, and formal
+                complaint generation.
+              </p>
+            </div>
+          )}
 
           {/* Complaint */}
 

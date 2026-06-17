@@ -523,10 +523,16 @@ async def analyze_complete(
             description
         )
         language = text_result["detectedLanguage"]
-        image_result = analyze_image_with_ai(
-            image, 
-            language
-        )
+        image_result = None
+        try:
+            image_result = analyze_image_with_ai(
+                image,
+                language
+            )
+        except Exception as e:
+            print("\n========== IMAGE ANALYSIS FAILED ==========")
+            print(e)
+            print("===========================================\n")
         return {
             "textAnalysis": text_result,
             "imageAnalysis": image_result
