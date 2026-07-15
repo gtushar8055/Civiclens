@@ -1,122 +1,64 @@
 import { Link } from "react-router-dom";
-import { BrainCircuit, Sun, Moon } from "lucide-react";
+import { Sun, Moon, ArrowRight } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
 function Navbar() {
   const { isDark, toggleTheme } = useTheme();
   const isLoggedIn = !!localStorage.getItem("token");
-
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   return (
-    <nav
-      className={`w-full border-b sticky top-0 z-50 transition-all duration-300 ${
-        isDark
-          ? "border-slate-800 bg-slate-950/80 backdrop-blur-md"
-          : "border-slate-200 bg-white/80 backdrop-blur-md shadow-sm"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+    <nav className="w-full z-50 pt-6 pb-4">
+      <div className="max-w-[1200px] mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-
-        <Link
-          to="/"
-          className="flex items-center gap-3 hover:opacity-80 transition"
-        >
+        <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
           <img
             src={isDark ? "/Dark_Theme_logo.png" : "/Light_theme_logo.png"}
             alt="CivicLens Logo"
-            className="h-12 w-auto object-contain"
+            className="h-10 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-md transition-all"
           />
         </Link>
 
-        {/* Navigation & Theme Toggle */}
-
-        <div className="flex items-center gap-8">
-          <Link
-            to="/"
-            className={`font-medium transition hover:text-blue-500 ${
-              isDark
-                ? "text-slate-300 hover:text-white"
-                : "text-slate-700 hover:text-slate-900"
-            }`}
-          >
-            Home
-          </Link>
-
+        {/* Navigation Links - Center */}
+        <div className="hidden md:flex items-center gap-8">
+          <Link to="/" className="font-medium text-sm transition-colors hover:text-primary">Home</Link>
           {isLoggedIn && (
-            <Link
-              to="/history"
-              className={`font-medium transition hover:text-blue-500 ${
-                isDark
-                  ? "text-slate-300 hover:text-white"
-                  : "text-slate-700 hover:text-slate-900"
-              }`}
-            >
-              History
-            </Link>
+            <Link to="/history" className="font-medium text-sm transition-colors hover:text-primary">History</Link>
           )}
+          <Link to="/report" className="font-medium text-sm transition-colors hover:text-primary">Report Issue</Link>
+        </div>
 
-          <Link
-            to={isLoggedIn ? "/report" : "/login"}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 transition px-5 py-3 rounded-xl font-medium text-white shadow-lg hover:shadow-xl"
-          >
-            Report Complaint
-          </Link>
-
+        {/* Right Actions */}
+        <div className="flex items-center gap-4">
           {!isLoggedIn ? (
-            <>
-              <Link
-                to="/login"
-                className={`font-medium ${
-                  isDark ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
-                Login
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="font-medium text-sm transition-colors hover:text-primary hidden sm:block">Log in</Link>
+              <Link to="/signup" className="btn-gradient px-5 py-2 text-sm flex items-center gap-2">
+                Sign up <ArrowRight size={16} />
               </Link>
-
-              <Link
-                to="/signup"
-                className={`font-medium ${
-                  isDark ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
-                Signup
-              </Link>
-            </>
+            </div>
           ) : (
-            <>
-              <span
-                className={`font-medium ${
-                  isDark ? "text-white" : "text-slate-800"
-                }`}
-              >
-                {user?.name}
-              </span>
-
+            <div className="flex items-center gap-4">
+              <span className="font-semibold text-sm tracking-wide hidden sm:block">{user?.name}</span>
               <button
                 onClick={() => {
                   localStorage.clear();
                   window.location.href = "/login";
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white"
+                className="btn-outline px-4 py-2 text-sm text-red-600 hover:text-red-700"
               >
                 Logout
               </button>
-            </>
+            </div>
           )}
 
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
-              isDark
-                ? "bg-slate-800 text-yellow-400 hover:bg-slate-700"
-                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-            }`}
+            className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label="Toggle theme"
           >
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
       </div>

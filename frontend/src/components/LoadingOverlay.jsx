@@ -10,30 +10,12 @@ import {
 } from "lucide-react";
 
 const steps = [
-  {
-    icon: Languages,
-    text: "Detecting language...",
-  },
-  {
-    icon: BrainCircuit,
-    text: "Understanding complaint...",
-  },
-  {
-    icon: MapPinned,
-    text: "Finding concerned department...",
-  },
-  {
-    icon: ShieldAlert,
-    text: "Assessing priority level...",
-  },
-  {
-    icon: ImageIcon,
-    text: "Analyzing uploaded image...",
-  },
-  {
-    icon: FileText,
-    text: "Generating official complaint...",
-  },
+  { icon: Languages, text: "Detecting language..." },
+  { icon: BrainCircuit, text: "Understanding complaint..." },
+  { icon: MapPinned, text: "Finding concerned department..." },
+  { icon: ShieldAlert, text: "Assessing priority level..." },
+  { icon: ImageIcon, text: "Analyzing uploaded image..." },
+  { icon: FileText, text: "Generating official complaint..." },
 ];
 
 function LoadingOverlay() {
@@ -42,98 +24,90 @@ function LoadingOverlay() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[999] bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center"
+      className="fixed inset-0 z-[999] bg-[#10002b]/95 backdrop-blur-xl flex flex-col items-center justify-center"
     >
-      {/* AI Orb */}
+      {/* Premium AI Core */}
+      <div className="relative w-40 h-40 flex items-center justify-center mb-6">
+        {/* Outer glowing ring */}
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+          className="absolute inset-0 rounded-full bg-primary/20 blur-2xl"
+        />
+        
+        {/* Orbit Rings */}
+        <div className="absolute w-32 h-32 rounded-full border border-primary-light/30" />
+        <motion.div 
+          animate={{ rotate: -360 }}
+          transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+          className="absolute w-32 h-32 rounded-full border-t-2 border-primary-light border-dashed opacity-50"
+        />
 
-      <div className="relative w-36 h-36 flex items-center justify-center">
-        {/* Orbit Ring */}
-        <div className="absolute w-28 h-28 rounded-full border-2 border-cyan-500/40" />
+        {/* Pulsing Center */}
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary-light shadow-[0_0_40px_rgba(199,125,255,1)] flex items-center justify-center"
+        >
+          <div className="w-full h-full rounded-full bg-white/20 animate-pulse" />
+        </motion.div>
 
-        {/* Center Dot */}
-        <div className="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.9)]" />
-
-        {/* Rotating Magnifier */}
+        {/* Orbiting Scanner */}
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: "linear",
-          }}
-          className="absolute w-28 h-28"
+          transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+          className="absolute w-32 h-32"
         >
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-            <ScanSearch size={32} className="text-cyan-300" />
+          <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#240046] p-1.5 rounded-full border border-primary/50 shadow-[0_0_15px_rgba(157,78,221,0.6)]">
+            <ScanSearch size={24} className="text-primary-light" />
           </div>
         </motion.div>
       </div>
 
       <motion.h1
-        initial={{
-          opacity: 0,
-          y: 15,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        className="mt-8 text-3xl font-bold text-white"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-white text-center font-heading"
       >
-        CivicLens AI is Thinking...
+        CivicLens AI
       </motion.h1>
 
       <motion.p
-        animate={{
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 2,
-        }}
-        className="mt-3 text-slate-300"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ repeat: Infinity, duration: 2 }}
+        className="mt-2 text-primary-light text-lg tracking-wide font-medium"
       >
-        Please wait while AI prepares your civic report.
+        Synthesizing report...
       </motion.p>
 
-      <div className="mt-10 space-y-4 w-[430px]">
+      <div className="mt-12 space-y-4 w-[430px] relative z-10">
         {steps.map((step, index) => {
           const Icon = step.icon;
-
           return (
             <motion.div
               key={index}
-              initial={{
-                opacity: 0,
-                x: -30,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                delay: index * 0.25,
-              }}
-              className="flex items-center gap-4 bg-slate-900/70 border border-slate-700 rounded-xl p-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.4 }}
+              className="flex items-center gap-4 bg-[#240046]/50 border border-primary/20 rounded-xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group"
             >
-              <Icon size={22} className="text-cyan-400" />
-
-              <span className="text-white">{step.text}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent w-0 group-hover:w-full transition-all duration-500 ease-out" />
+              <div className="p-2 bg-[#10002b] rounded-lg border border-primary/30 relative z-10">
+                <Icon size={20} className="text-primary-light" />
+              </div>
+              <span className="text-slate-200 font-medium relative z-10">{step.text}</span>
             </motion.div>
           );
         })}
       </div>
 
-      <motion.div
-        animate={{
-          width: ["0%", "100%"],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 3,
-        }}
-        className="mt-10 h-1 bg-cyan-400 rounded-full w-72"
-      />
+      <div className="mt-10 h-1.5 bg-[#240046] rounded-full w-80 overflow-hidden">
+        <motion.div
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="h-full bg-gradient-to-r from-transparent via-primary-light to-transparent w-1/2"
+        />
+      </div>
     </motion.div>
   );
 }

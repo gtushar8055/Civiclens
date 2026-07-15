@@ -1,77 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-dark: #020617;
-  --primary-light: #f8fafc;
-  --secondary-dark: #0f172a;
-  --secondary-light: #e2e8f0;
-  --border-dark: #1e293b;
-  --border-light: #cbd5e1;
-  --text-dark: #ffffff;
-  --text-light: #1e293b;
-  --text-muted-dark: #94a3b8;
-  --text-muted-light: #64748b;
-  --bg-card-dark: #1e293b;
-  --bg-card-light: #ffffff;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
+@layer base {
+  :root {
+    --text-main: #1a1a1a;
+    --text-muted: #666666;
+    --app-bg: #FDF8F5;
+  }
+
+  html.dark {
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --app-bg: #121212;
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    background-color: var(--app-bg);
+    min-height: 100vh;
+    @apply transition-colors duration-500;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full hover:bg-purple-700 transition-colors;
+  }
 }
 
-* {
-  @apply transition-colors duration-300;
-}
+@layer utilities {
+  .app-container {
+    @apply min-h-screen w-full;
+  }
 
-body {
-  font-family: 'Inter', sans-serif;
-  @apply bg-slate-950 text-white;
-}
+  .text-gradient-mesh {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500;
+  }
+  
+  html.dark .text-gradient-mesh {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400;
+  }
 
-html.light body {
-  @apply bg-white text-slate-900;
-}
+  .btn-gradient {
+    @apply bg-gradient-to-r from-purple-600 to-orange-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-full font-medium px-6 py-2 hover:opacity-90;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Sora', sans-serif;
-  @apply font-bold;
-}
-
-/* Smooth transitions for theme switching */
-html.dark {
-  color-scheme: dark;
-}
-
-html.light {
-  color-scheme: light;
-}
-
-/* Custom scrollbar styling */
-::-webkit-scrollbar {
-  @apply w-2;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-slate-900;
-}
-
-html.light ::-webkit-scrollbar-track {
-  @apply bg-slate-100;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-blue-600 rounded-full hover:bg-blue-500;
-}
-
-/* Focus styles */
-input:focus,
-textarea:focus,
-select:focus {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
-}
-
-html.light input:focus,
-html.light textarea:focus,
-html.light select:focus {
-  @apply ring-offset-white;
+  .btn-outline {
+    @apply border border-slate-200 bg-white/80 hover:bg-white text-slate-900 shadow-sm transition-all duration-300 rounded-full font-medium px-6 py-2;
+  }
+  html.dark .btn-outline {
+    @apply border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-white;
+  }
 }

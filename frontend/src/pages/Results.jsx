@@ -1,56 +1,77 @@
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import { useTheme } from "../context/ThemeContext";
-import { BACKEND_API } from "../services/api";
-import { Copy, Check } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import Navbar from "../components/Navbar";
+import { BACKEND_API } from "../services/api";
+import { Copy, Check, Languages, AlertTriangle, Building2, MapPin, Eye, CheckCircle2, ShieldAlert, FileText, ScanSearch, Lightbulb, TrendingUp, Tags } from "lucide-react";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
 
 function Results() {
-  const { isDark } = useTheme();
   const { id } = useParams();
 
-  const [analysis, setAnalysis] = useState(
-    JSON.parse(sessionStorage.getItem("analysis")),
-  );
-
+  const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [complaintBody, setComplaintBody] = useState("");
+  const [complaintSubject, setComplaintSubject] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    const fetchComplaint = async () => {
+      try {
+        const response = await BACKEND_API.get(`/api/complaints/${id}`);
+        const data = response.data.analysis;
+        setAnalysis(data);
+        setComplaintSubject(data.textAnalysis?.draftComplaint?.subject || "");
+        setComplaintBody(data.textAnalysis?.draftComplaint?.body || "");
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (!id) {
       const stored = JSON.parse(sessionStorage.getItem("analysis"));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnalysis(stored);
-      setComplaintSubject(stored.textAnalysis.draftComplaint.subject);
-      setComplaintBody(stored.textAnalysis.draftComplaint.body);
+      if (stored?.textAnalysis?.draftComplaint) {
+        setComplaintSubject(stored.textAnalysis.draftComplaint.subject);
+        setComplaintBody(stored.textAnalysis.draftComplaint.body);
+      }
       setLoading(false);
       return;
     }
     fetchComplaint();
-  }, []);
-
-  const fetchComplaint = async () => {
-    try {
-      const response = await BACKEND_API.get(`/api/complaints/${id}`);
-
-      const data = response.data.analysis;
-
-      setAnalysis(data);
-      setComplaintSubject(data.textAnalysis.draftComplaint.subject);
-      setComplaintBody(data.textAnalysis.draftComplaint.body);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [editing, setEditing] = useState(false);
-  const [complaintBody, setComplaintBody] = useState("");
-  const [complaintSubject, setComplaintSubject] = useState("");
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        Loading...
+      <div className="w-full relative overflow-hidden min-h-screen">
+        <Navbar />
+        <div className="flex justify-center items-center h-[60vh]">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!analysis || !analysis.textAnalysis) {
+    return (
+      <div className="w-full relative overflow-hidden min-h-screen">
+        <Navbar />
+        <div className="flex justify-center items-center h-[60vh]">
+          <h2 className="text-xl font-bold">No analysis data found.</h2>
+        </div>
       </div>
     );
   }
@@ -60,7 +81,6 @@ function Results() {
   const uploadedImage = !id ? sessionStorage.getItem("uploadedImage") : null;
 
   const saveComplaint = async () => {
-    console.log("SAVE BUTTON CLICKED");
     try {
       const payload = {
         title: complaintSubject,
@@ -74,632 +94,301 @@ function Results() {
       };
 
       const token = localStorage.getItem("token");
-
       const response = await BACKEND_API.post("/api/complaints", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       alert(response.data.message);
     } catch (error) {
       console.log(error);
-
       alert("Unable to save complaint.");
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(complaintSubject + "\n\n" + complaintBody);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <>
+    <div className="w-full relative overflow-hidden">
       <Navbar />
 
-      <div
-        className={`min-h-screen py-12 transition-colors ${
-          isDark
-            ? "bg-gradient-to-br from-slate-950 to-slate-900 text-white"
-            : "bg-gradient-to-br from-white to-slate-50 text-slate-900"
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-6">
-          <h1
-            className={`text-5xl font-bold mb-10 ${
-              isDark
-                ? "bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
-                : "bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent"
-            }`}
-          >
-            AI Analysis Result
-          </h1>
-
-          {/* Top Cards */}
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div
-              className={`p-6 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50"
-                  : "bg-white/70 border-slate-200 hover:bg-white"
-              }`}
-            >
-              <p className={`${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Language Detected
-              </p>
-              <h2
-                className={`text-2xl font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}
-              >
-                {text.detectedLanguage}
-              </h2>
-            </div>
-
-            <div
-              className={`p-6 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50"
-                  : "bg-white/70 border-slate-200 hover:bg-white"
-              }`}
-            >
-              <p className={`${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Category
-              </p>
-              <h2
-                className={`text-2xl font-bold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}
-              >
-                {text.category}
-              </h2>
-            </div>
-
-            <div
-              className={`p-6 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50"
-                  : "bg-white/70 border-slate-200 hover:bg-white"
-              }`}
-            >
-              <p className={`${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Priority
-              </p>
-
-              <h2
-                className={`text-2xl font-bold mt-2 ${isDark ? "text-red-400" : "text-red-600"}`}
-              >
-                {text.priority}
-              </h2>
-            </div>
-
-            <div
-              className={`p-6 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50"
-                  : "bg-white/70 border-slate-200 hover:bg-white"
-              }`}
-            >
-              <p className={`${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Concerned Department
-              </p>
-
-              <h2
-                className={`text-lg font-semibold mt-2 ${isDark ? "text-white" : "text-slate-900"}`}
-              >
-                {text.recommendedDepartment.department}
-              </h2>
-            </div>
-          </div>
-
-          {/* Summary */}
-
-          <div
-            className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              What's the matter actually ?
-            </h2>
-
-            <p
-              className={`leading-8 ${isDark ? "text-slate-300" : "text-slate-700"}`}
-            >
-              {text.summary}
+      <div className="max-w-[1200px] mx-auto px-6 py-12">
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={fadeUp} className="mb-12 flex flex-col items-center text-center">
+            <h1 className="text-4xl md:text-5xl font-bold font-heading mb-4 tracking-tight">
+              AI Analysis <span className="text-gradient-mesh">Report</span>
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-slate-400 font-medium">
+              Comprehensive civic intelligence generated by CivicLens AI
             </p>
-          </div>
+          </motion.div>
 
-          {/* Suggested Resolution */}
-
-          <div
-            className={`p-8 rounded-2xl mt-8 border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Suggested Resolution
-            </h2>
-
-            <ul className="space-y-3">
-              {text.suggestedResolution.map((item, index) => (
-                <li
-                  key={index}
-                  className={`p-4 rounded-xl border transition-all ${
-                    isDark
-                      ? "bg-slate-700/50 border-slate-600 hover:bg-slate-700/70"
-                      : "bg-slate-100 border-slate-300 hover:bg-slate-200"
-                  }`}
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div
-            className={`p-8 rounded-2xl mt-8 border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Estimated Resolution Time
-            </h2>
-
-            <p
-              className={`text-3xl font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"}`}
-            >
-              {text.estimatedResolutionTime}
-            </p>
-          </div>
-
-          <div
-            className={`p-8 rounded-2xl mt-8 border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Citizen Advisory
-            </h2>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3
-                  className={`${isDark ? "text-green-400" : "text-green-600"} font-bold mb-4 flex items-center gap-2`}
-                >
-                  ✅ Do's
-                </h3>
-
-                <ul className="space-y-3">
-                  {text.citizenAdvisory.dos.map((item, index) => (
-                    <li
-                      key={index}
-                      className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                    >
-                      • {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3
-                  className={`${isDark ? "text-red-400" : "text-red-600"} font-bold mb-4 flex items-center gap-2`}
-                >
-                  ❌ Don'ts
-                </h3>
-
-                <ul className="space-y-3">
-                  {text.citizenAdvisory.donts.map((item, index) => (
-                    <li
-                      key={index}
-                      className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                    >
-                      • {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`p-8 rounded-2xl mt-8 border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Potential Risks
-            </h2>
-
-            <ul className="space-y-3">
-              {text.potentialRisks.map((risk, index) => (
-                <li
-                  key={index}
-                  className={`p-4 rounded-xl border-l-4 transition-all ${
-                    isDark
-                      ? "bg-red-900/20 border-l-red-600 border-r border-slate-700"
-                      : "bg-red-50 border-l-red-600 border-r border-red-200"
-                  }`}
-                >
-                  <span
-                    className={`${isDark ? "text-red-300" : "text-red-900"}`}
-                  >
-                    ⚠️ {risk}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Entities */}
-
-          <div
-            className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-4 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Extracted Entities
-            </h2>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr
-                    className={`border-b ${isDark ? "border-slate-700" : "border-slate-300"}`}
-                  >
-                    <th
-                      className={`text-left py-3 font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      Type
-                    </th>
-                    <th
-                      className={`text-left py-3 font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
-                    >
-                      Entity
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {text.entities.map((item, index) => (
-                    <tr
-                      key={index}
-                      className={`border-b transition-colors hover:bg-opacity-50 ${
-                        isDark
-                          ? "border-slate-800 hover:bg-slate-700/30"
-                          : "border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      <td
-                        className={`py-4 ${isDark ? "text-slate-300" : "text-slate-700"}`}
-                      >
-                        {item.type}
-                      </td>
-                      <td className="py-4">
-                        <span
-                          className={`px-3 py-2 rounded-lg font-medium ${
-                            isDark
-                              ? "bg-blue-600 text-white"
-                              : "bg-blue-100 text-blue-900"
-                          }`}
-                        >
-                          {item.entity}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {!id && (
-            <div
-              className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700"
-                  : "bg-white/70 border-slate-200"
-              }`}
-            >
-              <h2
-                className={`text-2xl font-bold mb-6 ${isDark ? "text-white" : "text-slate-900"}`}
-              >
-                Uploaded Image
-              </h2>
-              {uploadedImage ? (
-                <img
-                  src={uploadedImage}
-                  alt="Uploaded Complaint"
-                  className={`rounded-xl w-full max-h-[500px] object-cover border-2 ${
-                    isDark ? "border-slate-700" : "border-slate-300"
-                  }`}
-                />
-              ) : (
-                <div
-                  className={`p-10 rounded-xl text-center ${
-                    isDark
-                      ? "bg-slate-800 text-slate-400"
-                      : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  📷 Image preview is available only for the current session.
+          {/* Top Stat Cards */}
+          <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { label: "Language", value: text.detectedLanguage, icon: Languages },
+              { label: "Category", value: text.category, icon: MapPin },
+              { label: "Priority", value: text.priority, icon: AlertTriangle, color: text.priority?.toLowerCase().includes('high') || text.priority?.toLowerCase().includes('critical') ? 'text-orange-500' : 'text-purple-500' },
+              { label: "Department", value: text.recommendedDepartment?.department || 'Unknown', icon: Building2 }
+            ].map((stat, idx) => (
+              <div key={idx} className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700 hover:-translate-y-1 transition-transform">
+                <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center mb-4">
+                  <stat.icon size={20} className="text-slate-600 dark:text-slate-400" />
                 </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
+                <h2 className={`text-xl font-bold font-heading ${stat.color ? stat.color : 'text-slate-900 dark:text-white'}`}>
+                  {stat.value}
+                </h2>
+              </div>
+            ))}
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Content Column */}
+            <div className="lg:col-span-2 space-y-8">
+              
+              {/* Summary */}
+              <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                <h2 className="text-2xl font-bold mb-4 font-heading flex items-center gap-3">
+                  <Eye className="text-purple-500" /> Executive Summary
+                </h2>
+                <p className="leading-relaxed text-lg text-slate-700 dark:text-slate-300 font-medium">
+                  {text.summary}
+                </p>
+              </motion.div>
+
+              {/* Generated Formal Complaint */}
+              <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-floating border border-purple-100 dark:border-purple-900 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-orange-400" />
+                <h2 className="text-2xl font-bold mb-6 font-heading flex items-center gap-3">
+                  <FileText className="text-purple-500" /> Generated Official Letter
+                </h2>
+
+                <div className="space-y-6">
+                  {editing ? (
+                    <input
+                      value={complaintSubject}
+                      onChange={(e) => setComplaintSubject(e.target.value)}
+                      className="w-full p-4 rounded-2xl outline-none border border-slate-200 dark:border-slate-700 focus:border-purple-500 bg-slate-50 dark:bg-slate-900 font-semibold"
+                    />
+                  ) : (
+                    <h3 className="text-xl font-bold border-b border-slate-100 dark:border-slate-700 pb-4">
+                      Subject: {complaintSubject}
+                    </h3>
+                  )}
+
+                  {editing ? (
+                    <textarea
+                      rows={12}
+                      value={complaintBody}
+                      onChange={(e) => setComplaintBody(e.target.value)}
+                      className="w-full p-6 rounded-2xl outline-none border border-slate-200 dark:border-slate-700 focus:border-purple-500 bg-slate-50 dark:bg-slate-900 resize-y"
+                    />
+                  ) : (
+                    <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                      <p className="whitespace-pre-line leading-relaxed text-slate-700 dark:text-slate-300">
+                        {complaintBody}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => setEditing(!editing)}
+                    className="btn-outline px-6 py-2.5 flex items-center gap-2"
+                  >
+                    {editing ? "✓ Save Edits" : "✎ Edit Letter"}
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    className={`px-6 py-2.5 rounded-full font-medium transition-all flex items-center gap-2 ${
+                      copied 
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "btn-outline"
+                    }`}
+                  >
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                    {copied ? "Copied!" : "Copy Text"}
+                  </button>
+                  <button
+                    onClick={saveComplaint}
+                    className="btn-gradient px-8 py-2.5 ml-auto text-lg"
+                  >
+                    Publish to Network
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* Extracted Entities */}
+              {text.entities && text.entities.length > 0 && (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                  <h2 className="text-2xl font-bold mb-6 font-heading flex items-center gap-3">
+                    <Tags className="text-purple-500" /> Extracted Entities
+                  </h2>
+                  <div className="overflow-hidden rounded-2xl border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                        <tr>
+                          <th className="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Type</th>
+                          <th className="py-4 px-6 font-semibold text-sm uppercase tracking-wider">Entity Value</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        {text.entities.map((item, index) => (
+                          <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                            <td className="py-4 px-6 text-sm font-medium text-slate-600 dark:text-slate-300">{item.type}</td>
+                            <td className="py-4 px-6 font-bold text-slate-900 dark:text-white">
+                              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg">
+                                {item.entity || item.name}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
               )}
+
             </div>
-          )}
 
-          {/* Vision Analysis */}
+            {/* Side Content Column */}
+            <div className="space-y-8">
+              
+              {/* Evidence & Visual Analysis */}
+              {(!id && uploadedImage) || image ? (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                  <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2">
+                    <ScanSearch className="text-orange-500" /> Visual Evidence
+                  </h2>
+                  
+                  {!id && uploadedImage && (
+                    <img src={uploadedImage} alt="Uploaded evidence" className="w-full h-48 object-cover rounded-2xl mb-6 shadow-sm" />
+                  )}
 
-          {image ? (
-            <div
-              className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700"
-                  : "bg-white/70 border-slate-200"
-              }`}
-            >
-              <h2
-                className={`text-2xl font-bold mb-6 ${
-                  isDark ? "text-white" : "text-slate-900"
-                }`}
-              >
-                Analysis from the Image
-              </h2>
+                  {image && (
+                    <div className="space-y-5">
+                      <div>
+                        <h3 className="text-xs uppercase font-bold text-slate-400 mb-2">AI Summary</h3>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl">
+                          {image.imageSummary || image.visualEvidence}
+                        </p>
+                      </div>
 
-              <div className="space-y-5">
-                <div>
-                  <h3
-                    className={`text-lg font-semibold mb-2 ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    AI Image Summary
-                  </h3>
+                      {image.detectedIssues && image.detectedIssues.length > 0 && (
+                        <div>
+                          <h3 className="text-xs uppercase font-bold text-slate-400 mb-2">Detected Issues</h3>
+                          <div className="space-y-2">
+                            {image.detectedIssues.map((issue, idx) => (
+                              <div key={idx} className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl flex flex-col">
+                                <span className="font-bold text-sm text-red-700 dark:text-red-300">{issue.type || issue.description}</span>
+                                <span className="text-xs text-red-500/80 font-medium">Severity: {issue.severity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              ) : null}
 
-                  <p
-                    className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                  >
-                    {image.imageSummary}
-                  </p>
-                </div>
+              {/* Estimated Time */}
+              {text.estimatedResolutionTime && (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase font-bold text-slate-400 mb-1">Est. Resolution Time</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 font-heading">
+                      {text.estimatedResolutionTime}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-500">
+                    <TrendingUp size={20} />
+                  </div>
+                </motion.div>
+              )}
 
-                <div>
-                  <h3
-                    className={`text-lg font-semibold mb-2 ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    Detected Issues
-                  </h3>
-
+              {/* Suggested Resolution */}
+              {text.suggestedResolution && text.suggestedResolution.length > 0 && (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                  <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2">
+                    <Lightbulb className="text-orange-500" /> Suggested Resolution
+                  </h2>
                   <ul className="space-y-3">
-                    {image.detectedIssues.map((issue, index) => (
-                      <li
-                        key={index}
-                        className={`rounded-xl p-4 border ${
-                          isDark
-                            ? "bg-slate-700/50 border-slate-600"
-                            : "bg-slate-100 border-slate-300"
-                        }`}
-                      >
-                        <div
-                          className={`font-semibold ${
-                            isDark ? "text-white" : "text-slate-900"
-                          }`}
-                        >
-                          {issue.type || issue.description}
-                        </div>
-
-                        <div
-                          className={`text-sm mt-1 ${
-                            isDark ? "text-slate-400" : "text-slate-600"
-                          }`}
-                        >
-                          Severity : {issue.severity}
-                        </div>
+                    {text.suggestedResolution.map((item, idx) => (
+                      <li key={idx} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {item}
                       </li>
                     ))}
                   </ul>
-                </div>
+                </motion.div>
+              )}
 
-                <div>
-                  <h3
-                    className={`text-lg font-semibold mb-2 ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    Visual Evidence
-                  </h3>
+              {/* Potential Risks */}
+              {text.potentialRisks && text.potentialRisks.length > 0 && (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border border-red-100 dark:border-red-900/30">
+                  <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2 text-red-500">
+                    <ShieldAlert /> Potential Risks
+                  </h2>
+                  <ul className="space-y-3">
+                    {text.potentialRisks.map((risk, idx) => (
+                      <li key={idx} className="flex gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-red-50/50 dark:bg-red-900/10 p-3 rounded-xl border border-red-100 dark:border-red-900/20">
+                        <span className="text-red-500">⚠️</span> {risk}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
 
-                  <p
-                    className={`${isDark ? "text-slate-300" : "text-slate-700"}`}
-                  >
-                    {image.visualEvidence}
-                  </p>
-                </div>
-
-                <div>
-                  <h3
-                    className={`text-lg font-semibold mb-2 ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    AI Confidence
-                  </h3>
-
-                  <div
-                    className={`w-full rounded-full h-4 border ${
-                      isDark
-                        ? "bg-slate-700 border-slate-600"
-                        : "bg-slate-300 border-slate-400"
-                    }`}
-                  >
-                    <div
-                      className="bg-gradient-to-r from-green-400 to-green-500 h-4 rounded-full"
-                      style={{
-                        width: `${image.confidenceScore * 100}%`,
-                      }}
-                    />
+              {/* Citizen Advisory */}
+              {text.citizenAdvisory && (
+                <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                  <h2 className="text-xl font-bold mb-6 font-heading flex items-center gap-2">
+                    <CheckCircle2 className="text-purple-500" /> Citizen Advisory
+                  </h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-green-500 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                        Do's
+                      </h3>
+                      <ul className="space-y-2">
+                        {text.citizenAdvisory.dos?.map((item, i) => (
+                          <li key={i} className="text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 p-3 rounded-xl font-medium border border-green-100 dark:border-green-900/30">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-bold text-red-500 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                        Don'ts
+                      </h3>
+                      <ul className="space-y-2">
+                        {text.citizenAdvisory.donts?.map((item, i) => (
+                          <li key={i} className="text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-3 rounded-xl font-medium border border-red-100 dark:border-red-900/30">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-
-                  <p
-                    className={`mt-2 font-semibold ${
-                      isDark ? "text-green-400" : "text-green-600"
-                    }`}
-                  >
-                    {(image.confidenceScore * 100).toFixed(0)}% Confidence
-                  </p>
-                </div>
-              </div>
+                </motion.div>
+              )}
             </div>
-          ) : (
-            <div
-              className={`mt-8 p-8 rounded-2xl border ${
-                isDark
-                  ? "bg-slate-800/50 border-slate-700"
-                  : "bg-white/70 border-slate-200"
-              }`}
-            >
-              <h2
-                className={`text-2xl font-bold mb-4 ${
-                  isDark ? "text-white" : "text-slate-900"
-                }`}
-              >
-                Visual Evidence
-              </h2>
 
-              <p
-                className={`${isDark ? "text-slate-300" : "text-slate-700"} leading-8`}
-              >
-                ⚠️ Visual evidence analysis is temporarily unavailable due to
-                high AI server load.
-                <br />
-                <br />
-                The complaint has been successfully analyzed using advanced
-                Natural Language Processing (NLP), including language detection,
-                priority assessment, department recommendation, entity
-                extraction, risk identification, citizen advisory, and formal
-                complaint generation.
-              </p>
-            </div>
-          )}
-
-          {/* Complaint */}
-
-          <div
-            className={`mt-8 p-8 rounded-2xl border backdrop-blur-sm transition-all ${
-              isDark
-                ? "bg-slate-800/50 border-slate-700"
-                : "bg-white/70 border-slate-200"
-            }`}
-          >
-            <h2
-              className={`text-2xl font-bold mb-5 ${isDark ? "text-white" : "text-slate-900"}`}
-            >
-              Generated Formal Complaint
-            </h2>
-
-            {editing ? (
-              <input
-                value={complaintSubject}
-                onChange={(e) => setComplaintSubject(e.target.value)}
-                className={`w-full p-3 rounded-xl mb-4 outline-none border-2 focus:border-blue-500 ${
-                  isDark
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-slate-300 text-slate-900"
-                }`}
-              />
-            ) : (
-              <h3
-                className={`text-xl font-semibold mb-3 ${isDark ? "text-white" : "text-slate-900"}`}
-              >
-                {complaintSubject}
-              </h3>
-            )}
-
-            {editing ? (
-              <textarea
-                rows={18}
-                value={complaintBody}
-                onChange={(e) => setComplaintBody(e.target.value)}
-                className={`w-full p-5 rounded-xl outline-none border-2 focus:border-blue-500 resize-none ${
-                  isDark
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-slate-300 text-slate-900"
-                }`}
-              />
-            ) : (
-              <p
-                className={`whitespace-pre-line leading-8 ${isDark ? "text-slate-300" : "text-slate-700"}`}
-              >
-                {complaintBody}
-              </p>
-            )}
           </div>
-
-          <div className="flex flex-col md:flex-row gap-4 mt-8">
-            <button
-              onClick={() => setEditing(!editing)}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105 ${
-                isDark
-                  ? "bg-amber-600 hover:bg-amber-500 text-white"
-                  : "bg-amber-500 hover:bg-amber-600 text-white"
-              }`}
-            >
-              {editing ? "✓ Done Editing" : "✎ Edit Complaint"}
-            </button>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  complaintSubject + "\n\n" + complaintBody,
-                );
-                alert("Complaint Copied!");
-              }}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105 ${
-                isDark
-                  ? "bg-green-600 hover:bg-green-500 text-white"
-                  : "bg-green-500 hover:bg-green-600 text-white"
-              }`}
-            >
-              <Copy size={18} />
-              Copy Complaint
-            </button>
-          </div>
-
-          {/* Button */}
-
-          <button
-            onClick={saveComplaint}
-            className={`mt-10 w-full rounded-xl py-4 text-xl font-semibold transition-all hover:scale-105 shadow-lg hover:shadow-xl ${
-              isDark
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
-                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
-            }`}
-          >
-            Save Complaint
-          </button>
-        </div>
+        </motion.div>
       </div>
-    </>
+    </div>
   );
 }
 

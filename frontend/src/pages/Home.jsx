@@ -1,155 +1,148 @@
 import Navbar from "../components/Navbar";
-import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
-import {
-  BrainCircuit,
-  Building2,
-  TriangleAlert,
-  FileText,
-  ScanSearch,
-  Lightbulb,
-  ArrowRight
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Star, Sparkles, CheckCircle2 } from "lucide-react";
 
 function Home() {
-  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="w-full relative overflow-hidden">
       <Navbar />
 
-      <div
-        className={`min-h-screen ${isDark ? "bg-gradient-to-br from-slate-950 to-slate-900" : "bg-gradient-to-br from-white to-slate-50"} text-white flex flex-col items-center justify-center px-4 py-20`}
-      >
-        {/* Hero Content */}
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Main Heading */}
-          <div className="mb-8">
-            <h1
-              className={`text-7xl md:text-8xl font-bold mb-6 ${
-                isDark
-                  ? "bg-gradient-to-r from-blue-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent"
-                  : "bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 bg-clip-text text-transparent"
-              }`}
-            >
-              CivicLens
-            </h1>
-            <p
-              className={`text-xl md:text-2xl font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}
-            >
-              AI-Powered Civic Intelligence System
-            </p>
-          </div>
-
-          {/* Description */}
-          <p
-            className={`text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed ${
-              isDark ? "text-slate-400" : "text-slate-600"
-            }`}
-          >
-            Report civic issues, let AI analyze them, and drive real change in
-            your community. Transform complaints into actionable insights.
+      <div className="max-w-[1200px] mx-auto px-6 py-12 lg:py-24 grid lg:grid-cols-2 gap-16 items-center min-h-[calc(100vh-120px)]">
+        
+        {/* Left Content Area */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-xl"
+        >
+          <h1 className="text-[3.5rem] leading-[1.1] md:text-[4.5rem] font-bold mb-6 tracking-tight">
+            <span className="text-gradient-mesh">AI analysis</span><br />
+            for real-time civic issues
+          </h1>
+          
+          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-medium">
+            CivicLens records your complaints, recognizes the core issues, and provides real-time resolutions and official letters — all without taking manual notes.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col md:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-wrap items-center gap-4 mb-8">
             <button
               onClick={() => navigate("/report")}
-              className={`group flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 ${
-                isDark
-                  ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
-              }`}
+              className="btn-gradient px-8 py-3.5 text-lg flex items-center gap-2 group"
             >
-              Report Now
-              <ArrowRight
-                size={20}
-                className="group-hover:translate-x-1 transition"
-              />
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /> Start reporting
             </button>
-
             <button
               onClick={() => navigate("/history")}
-              className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 border-2 ${
-                isDark
-                  ? "border-slate-700 text-slate-300 hover:bg-slate-800/50"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-100/50"
-              }`}
+              className="btn-outline px-8 py-3.5 text-lg"
             >
-              View History
-              <ArrowRight size={20} />
+              View history
             </button>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mt-20">
-            {[
-              {
-                icon: BrainCircuit,
-                title: "NLP Analysis",
-                description:
-                  "Extracts category, priority, language and important entities.",
-              },
-              {
-                icon: Building2,
-                title: "Department Classification",
-                description:
-                  "Routes complaints to the most relevant government department.",
-              },
-              {
-                icon: TriangleAlert,
-                title: "Priority Detection",
-                description:
-                  "Detects urgency and classifies complaints into Critical, High or Medium priority.",
-              },
-              {
-                icon: FileText,
-                title: "Complaint Letter",
-                description:
-                  "Creates a formal complaint letter ready for submission.",
-              },
-              {
-                icon: ScanSearch,
-                title: "Image Intelligence",
-                description:
-                  "Analyzes uploaded evidence using Gemini Vision to detect visible civic issues.",
-              },
-              {
-                icon: Lightbulb,
-                title: "AI Recommendations",
-                description:
-                  "Provides resolution suggestions, citizen advisory and potential risks.",
-              },
-            ].map((feature, idx) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={idx}
-                  className={`p-6 rounded-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 ${
-                    isDark
-                      ? "bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 hover:border-blue-600"
-                      : "bg-white/50 border-slate-200 hover:bg-white hover:border-blue-500 shadow-sm hover:shadow-md"
-                  }`}
-                >
-                  <Icon className="text-blue-500 mb-4 mx-auto" size={28} />
-                  <h3
-                    className={`font-bold mb-2 ${isDark ? "text-white" : "text-slate-900"}`}
-                  >
-                    {feature.title}
-                  </h3>
-                  <p
-                    className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}
-                  >
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-slate-400"></div> AI-powered extraction</span>
+            <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-slate-400"></div> Instant official letters</span>
+            <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-slate-400"></div> Priority routing</span>
           </div>
+        </motion.div>
+
+        {/* Right Content Area - Floating UI Elements (Screenshot Inspired) */}
+        <div className="relative h-[500px] lg:h-[600px] w-full hidden md:block">
+          
+          {/* Main Central Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-floating border-[3px] border-slate-100 dark:border dark:border-slate-700 z-20"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <Star size={16} className="fill-current" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Complaint Analysis</h4>
+                  <p className="text-[10px] text-slate-500">Processing text & images</p>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-600"></span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="h-full bg-gradient-to-r from-purple-500 to-orange-400"
+                />
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 text-sm border-[3px] border-slate-100 dark:border dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-2 text-purple-600 dark:text-purple-400 font-semibold text-xs uppercase tracking-wider">
+                  <Sparkles size={14} /> AI Recommendation
+                </div>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                  The issue has been identified as <span className="font-bold text-orange-500">High Priority</span>. Drafting official letter to the Municipal Department...
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Floating Card 1 - Top Left */}
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[15%] left-[5%] p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-[3px] border-slate-100 dark:border dark:border-slate-700 z-10 flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500">
+              <CheckCircle2 size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold">Category Detected</p>
+              <p className="text-[10px] text-slate-500">Infrastructure</p>
+            </div>
+          </motion.div>
+
+          {/* Floating Card 2 - Bottom Left (Infrastructure) */}
+          <motion.div
+            animate={{ y: [0, 15, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-[10%] left-[5%] p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-[3px] border-slate-100 dark:border dark:border-slate-700 z-30 flex items-center gap-4"
+          >
+             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+               <Star size={18} className="fill-current" />
+             </div>
+             <div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Pothole Detected</p>
+                <p className="text-[10px] text-slate-500 font-medium">Severity: High</p>
+             </div>
+          </motion.div>
+
+          {/* Decorative Connecting Lines (SVG) */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}>
+            <path d="M 120 200 Q 250 150 300 280" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="2" strokeDasharray="4 4" />
+            <path d="M 400 350 Q 450 450 380 500" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="2" strokeDasharray="4 4" />
+          </svg>
+
         </div>
       </div>
-    </>
+      
+      {/* Footer */}
+      <footer className="w-full border-t border-slate-200/50 dark:border-slate-700/50 py-8 text-center bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          © 2026 CivicLens (Tushar Gupta). All rights reserved.
+        </p>
+      </footer>
+    </div>
   );
 }
 
