@@ -52,6 +52,11 @@ const complaintSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    submissionAssistant: {
+      type: Object,
+      default: {},
+    },
   },
 
   {

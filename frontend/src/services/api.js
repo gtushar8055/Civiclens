@@ -1,11 +1,11 @@
 import axios from "axios";
 
 export const AI_API = axios.create({
-  baseURL: "https://civiclens-ai-1051.onrender.com",
+  baseURL: "http://localhost:8000",
 });
 
 export const BACKEND_API = axios.create({
-  baseURL: "https://civiclens-backend-u9ol.onrender.com",
+  baseURL: "http://localhost:5000",
 });
 
 BACKEND_API.interceptors.request.use((config) => {

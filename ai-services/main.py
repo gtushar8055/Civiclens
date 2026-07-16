@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File , Form
 from PIL import Image
 from pydantic import BaseModel
 from google import genai
+from google.genai import types
 from google.genai.errors import ServerError , ClientError
 
 
@@ -35,7 +36,10 @@ def generate_with_fallback(contents):
             client = genai.Client(api_key=key)
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=contents
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                )
             )
             print(f"Success using Key {index+1}")
             return response
@@ -132,12 +136,36 @@ def analyze_complaint_with_ai(title: str, description: str):
         "recommendedDepartment": {{
             "department": "",
             "reason": ""
+        }},
+
+        "submissionAssistant": {{
+            "status": "",
+            "readinessScore": 0,
+            "missingRequirements": [],
+            "officialDepartment": "",
+            "recommendedPortal": {{
+                "portalKey": "",
+                "name": ""
+            }},
+            "portalReason": "",
+            "submissionChecklist": [],
+            "submissionSteps": [],
+            "requiredDocuments": [],
+            "expectedOutcome": "",
+            "nextAction": ""
         }}
     }}
 
     RULES:
 
-    0. Detect the language of the complaint.
+    0. Quality & Tone Standards:
+        - Avoid repeating words like "critical", "urgent", "immediate" multiple times across different sections.
+        - Use natural, professional, and concise language.
+        - Keep recommendations and action points concise without repetitive fluff.
+        - Avoid duplicate points across Executive Summary, Draft Letter, Risks, and Recommended Actions.
+        - Ensure each section provides unique value and distinct insights.
+
+    1. Detect the language of the complaint.
 
         Support all major Indian languages.
         Return the detected language name exactly as its English language name.
@@ -343,6 +371,17 @@ def analyze_complaint_with_ai(title: str, description: str):
         For every other language (Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Odia, Assamese, Urdu, etc.), generate the complete closing naturally and professionally in that same language, including the citizen detail placeholders.
 
     9. Recommend the most suitable government department and explain why.
+
+    10. AI Submission Assistant
+
+    - The AI must never generate fake government departments, fake government portals, fake URLs, or fictional submission procedures.
+    - DO NOT generate or store official government URLs. Provide only a portalKey and name.
+    - If uncertain, recommend CPGRAMS (portalKey: "CPGRAMS") or the appropriate State/Municipal grievance portal and clearly mention the uncertainty.
+    - status must be one of: "Ready to Submit", "Needs More Information", "Insufficient Information".
+    - If readinessScore is less than 100, populate missingRequirements with what is still required.
+    - portalReason must explain why the department is appropriate.
+    - requiredDocuments must only be realistic supporting documents (e.g., "Evidence Images", "Exact Location"). Never invent mandatory documents like Aadhaar, PAN, etc., unless genuinely required.
+    - submissionSteps must be generic (e.g., "1. Visit the official grievance portal.", "2. Login or Register.", "3. Select the recommended department.", "4. Paste the AI-generated complaint.", "5. Upload supporting evidence.", "6. Submit the complaint."). Do not use portal-specific UI instructions.
 
     detectedLanguage is mandatory.
     Do not omit any field.

@@ -12,6 +12,7 @@ const createComplaint = async (req, res) => {
       status: req.body.status || "Pending",
       complaintLetter: req.body.complaintLetter,
       analysis: req.body.analysis,
+      submissionAssistant: req.body.submissionAssistant,
     });
     res.status(201).json({
       success: true,
