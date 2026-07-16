@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import { BACKEND_API } from "../services/api";
-import { jsPDF } from "jspdf";
+
 import { getPortalUrl } from "../services/portalDirectory";
 import { Copy, Check, Languages, AlertTriangle, Building2, MapPin, Eye, CheckCircle2, ShieldAlert, FileText, ScanSearch, Lightbulb, TrendingUp, Tags, ExternalLink, ListChecks, FileDown, Info, Save } from "lucide-react";
 
@@ -29,6 +29,7 @@ function Results() {
   const [copied, setCopied] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     const fetchComplaint = async () => {
@@ -119,59 +120,7 @@ function Results() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
 
-    const margin = 20;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const maxLineWidth = pageWidth - margin * 2;
-    let cursorY = margin;
-
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-
-    if (complaintSubject) {
-      doc.setFont("times", "bold");
-      const subjectText = `Subject: ${complaintSubject}`;
-      const splitSubject = doc.splitTextToSize(subjectText, maxLineWidth);
-      doc.text(splitSubject, margin, cursorY);
-      cursorY += (splitSubject.length * 6) + 10;
-    }
-
-    doc.setFont("times", "normal");
-    const bodyParagraphs = complaintBody.split('\n');
-
-    bodyParagraphs.forEach((paragraph) => {
-      if (paragraph.trim() === "") {
-        cursorY += 6;
-        return;
-      }
-
-      const splitText = doc.splitTextToSize(paragraph, maxLineWidth);
-
-      splitText.forEach((line) => {
-        if (cursorY > pageHeight - margin - 15) {
-          doc.addPage();
-          cursorY = margin;
-        }
-        doc.text(line, margin, cursorY);
-        cursorY += 6;
-      });
-      cursorY += 2;
-    });
-
-    doc.setFontSize(9);
-    doc.setTextColor(150);
-    const footerText = "AI-assisted draft generated using CivicLens. Please review before official submission.";
-    doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: "center" });
-
-    doc.save("Official_Complaint_Letter.pdf");
-  };
 
   return (
     <div className="w-full relative overflow-hidden">
@@ -270,7 +219,7 @@ function Results() {
                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                   <div className="mb-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
                     <Info size={14} className="text-blue-500 flex-shrink-0" />
-                    <p>Please review and edit the generated complaint before downloading or submitting it to any official authority.</p>
+                    <p>Please review and edit the generated complaint before copying or submitting it to any official authority.</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <button
@@ -282,20 +231,14 @@ function Results() {
                     <button
                       onClick={handleCopy}
                       className={`px-6 py-2.5 rounded-full font-medium transition-all flex items-center gap-2 ${copied
-                          ? "bg-green-100 text-green-700 border border-green-200"
-                          : "btn-outline"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "btn-outline"
                         }`}
                     >
                       {copied ? <Check size={18} /> : <Copy size={18} />}
                       {copied ? "Copied!" : "Copy Text"}
                     </button>
-                    <button
-                      onClick={handleDownloadPdf}
-                      className="btn-outline px-6 py-2.5 flex items-center gap-2"
-                    >
-                      <FileDown size={18} />
-                      Download PDF
-                    </button>
+
                   </div>
                 </div>
               </motion.div>
@@ -623,13 +566,13 @@ function Results() {
 
       <AnimatePresence>
         {isSuccessModalOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
@@ -644,7 +587,7 @@ function Results() {
               <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
                 Your civic intelligence report has been securely saved to your complaint history. You can access it anytime from the History section.
               </p>
-              
+
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => navigate("/history")}
