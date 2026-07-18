@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import { AI_API } from "../services/api";
-import { Upload, AlertCircle, FileImage, Sparkles } from "lucide-react";
+import { Upload, AlertCircle, FileImage, Sparkles, Mic, MicOff } from "lucide-react";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 function ComplaintForm() {
@@ -15,6 +15,116 @@ function ComplaintForm() {
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [activeRecordingField, setActiveRecordingField] = useState(null);
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const [selectedLang, setSelectedLang] = useState('en-IN');
+  const [speechError, setSpeechError] = useState('');
+  const [voiceSuccess, setVoiceSuccess] = useState(false);
+  
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+      setSpeechSupported(false);
+    }
+  }, []);
+
+  const startRecording = (field) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechError("Browser not supported");
+      return;
+    }
+    
+    setActiveRecordingField(field);
+    setSpeechError('');
+    setVoiceSuccess(false);
+    
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    
+    recognition.lang = selectedLang;
+    recognition.continuous = false; // Changed to false: continuous=true can sometimes cause network errors on localhost
+    recognition.interimResults = true;
+    
+    let currentTranscript = field === 'title' ? (title ? title + " " : "") : (description ? description + " " : "");
+    let hasError = false;
+    
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+    
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let newFinalTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          newFinalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      const combined = currentTranscript + newFinalTranscript + interimTranscript;
+      if (field === 'title') {
+         setTitle(combined);
+      } else {
+         setDescription(combined);
+      }
+
+      if (newFinalTranscript) {
+         currentTranscript += newFinalTranscript;
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      hasError = true;
+      setIsRecording(false);
+      if (event.error === 'not-allowed') {
+         setSpeechError('Permission denied. Please allow microphone access.');
+      } else if (event.error === 'no-speech') {
+         setSpeechError('Silence. No speech detected.');
+      } else if (event.error === 'network') {
+         setSpeechError('Network error: If you are using Brave or Chromium, Speech API may be blocked. Please try Google Chrome or Edge.');
+      } else {
+         setSpeechError(`Recognition failed: ${event.error}`);
+      }
+    };
+    
+    recognition.onend = () => {
+      setIsRecording(false);
+      if (!hasError) {
+         setVoiceSuccess(true);
+      }
+    };
+    
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      setSpeechError("Failed to start recording.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const toggleRecording = (field) => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording(field);
+    }
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -101,35 +211,207 @@ function ComplaintForm() {
           transition={{ delay: 0.1 }}
           className="bg-white dark:bg-slate-800 rounded-[32px] p-8 md:p-10 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700"
         >
-          {/* Title Input */}
+
           <div className="mb-6">
-            <label className="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
-              Complaint Title
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
+                Complaint Title
+              </label>
+
+              {speechSupported && (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    disabled={isRecording}
+                    className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="mr-IN">Marathi</option>
+                    <option value="gu-IN">Gujarati</option>
+                    <option value="pa-IN">Punjabi</option>
+                    <option value="bn-IN">Bengali</option>
+                    <option value="ta-IN">Tamil</option>
+                    <option value="te-IN">Telugu</option>
+                    <option value="kn-IN">Kannada</option>
+                    <option value="ml-IN">Malayalam</option>
+                  </select>
+                  
+                  <button
+                    onClick={() => toggleRecording('title')}
+                    type="button"
+                    className={`p-2 rounded-full flex items-center justify-center transition-all ${
+                      isRecording && activeRecordingField === 'title'
+                        ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30" 
+                        : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50"
+                    }`}
+                    title={isRecording && activeRecordingField === 'title' ? "Stop Recording" : "Start Voice Recording"}
+                  >
+                    {isRecording && activeRecordingField === 'title' ? <MicOff size={16} /> : <Mic size={16} />}
+                  </button>
+                </div>
+              )}
+            </div>
+            
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (activeRecordingField === 'title') {
+                   setVoiceSuccess(false);
+                   setSpeechError('');
+                }
+              }}
               placeholder="e.g. Large pothole near XYZ Colony Gate"
-              className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium"
+              className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium transition-colors ${
+                isRecording && activeRecordingField === 'title'
+                  ? "border-red-400 dark:border-red-500 ring-1 ring-red-400 shadow-[0_0_15px_rgba(248,113,113,0.15)]" 
+                  : "border-slate-200 dark:border-slate-700"
+              }`}
             />
+            
+
+            <div className={`mt-2 ${activeRecordingField === 'title' ? 'min-h-[24px]' : 'h-0 overflow-hidden'}`}>
+              {isRecording && activeRecordingField === 'title' && (
+                <p className="text-sm text-red-500 flex items-center gap-2 font-medium">
+                  <span className="animate-pulse">🎤</span> Listening... 
+                </p>
+              )}
+              {!isRecording && activeRecordingField === 'title' && speechError && (
+                <p className="text-sm text-red-500 flex items-center gap-1.5 font-medium">
+                  <AlertCircle size={14} /> {speechError}
+                </p>
+              )}
+              {!isRecording && activeRecordingField === 'title' && !speechError && voiceSuccess && title && (
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
+                    ✅ Voice converted successfully.
+                  </p>
+                  {selectedLang !== 'en-IN' && (
+                    <span className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+                      Detected Language: {
+                        {
+                          'hi-IN': 'Hindi',
+                          'mr-IN': 'Marathi',
+                          'gu-IN': 'Gujarati',
+                          'pa-IN': 'Punjabi',
+                          'bn-IN': 'Bengali',
+                          'ta-IN': 'Tamil',
+                          'te-IN': 'Telugu',
+                          'kn-IN': 'Kannada',
+                          'ml-IN': 'Malayalam'
+                        }[selectedLang]
+                      }
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Description Input */}
+
           <div className="mb-6">
-            <label className="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
-              Complaint Description
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
+                Complaint Description
+              </label>
+              
+              {speechSupported && (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    disabled={isRecording}
+                    className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="mr-IN">Marathi</option>
+                    <option value="gu-IN">Gujarati</option>
+                    <option value="pa-IN">Punjabi</option>
+                    <option value="bn-IN">Bengali</option>
+                    <option value="ta-IN">Tamil</option>
+                    <option value="te-IN">Telugu</option>
+                    <option value="kn-IN">Kannada</option>
+                    <option value="ml-IN">Malayalam</option>
+                  </select>
+                  
+                  <button
+                    onClick={() => toggleRecording('description')}
+                    type="button"
+                    className={`p-2 rounded-full flex items-center justify-center transition-all ${
+                      isRecording && activeRecordingField === 'description'
+                        ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30" 
+                        : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50"
+                    }`}
+                    title={isRecording && activeRecordingField === 'description' ? "Stop Recording" : "Start Voice Recording"}
+                  >
+                    {isRecording && activeRecordingField === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                if (activeRecordingField === 'description') {
+                   setVoiceSuccess(false);
+                   setSpeechError('');
+                }
+              }}
               rows="5"
               placeholder="Describe the issue in detail. Include exact location, impact, and when you first noticed it..."
-              className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium resize-none"
+              className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium resize-none transition-colors ${
+                isRecording && activeRecordingField === 'description'
+                  ? "border-red-400 dark:border-red-500 ring-1 ring-red-400 shadow-[0_0_15px_rgba(248,113,113,0.15)]" 
+                  : "border-slate-200 dark:border-slate-700"
+              }`}
             />
+            
+
+            <div className={`mt-2 ${activeRecordingField === 'description' ? 'min-h-[24px]' : 'h-0 overflow-hidden'}`}>
+              {isRecording && activeRecordingField === 'description' && (
+                <p className="text-sm text-red-500 flex items-center gap-2 font-medium">
+                  <span className="animate-pulse">🎤</span> Listening... 
+                </p>
+              )}
+              {!isRecording && activeRecordingField === 'description' && speechError && (
+                <p className="text-sm text-red-500 flex items-center gap-1.5 font-medium">
+                  <AlertCircle size={14} /> {speechError}
+                </p>
+              )}
+              {!isRecording && activeRecordingField === 'description' && !speechError && voiceSuccess && description && (
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
+                    ✅ Voice converted successfully.
+                  </p>
+                  {selectedLang !== 'en-IN' && (
+                    <span className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+                      Detected Language: {
+                        {
+                          'hi-IN': 'Hindi',
+                          'mr-IN': 'Marathi',
+                          'gu-IN': 'Gujarati',
+                          'pa-IN': 'Punjabi',
+                          'bn-IN': 'Bengali',
+                          'ta-IN': 'Tamil',
+                          'te-IN': 'Telugu',
+                          'kn-IN': 'Kannada',
+                          'ml-IN': 'Malayalam'
+                        }[selectedLang]
+                      }
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Image Upload */}
+
           <div className="mb-10">
             <label className="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
               Upload Evidence Image

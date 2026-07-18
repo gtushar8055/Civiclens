@@ -141,7 +141,7 @@ function Results() {
             </p>
           </motion.div>
 
-          {/* Top Stat Cards */}
+
           <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { label: "Language", value: text.detectedLanguage, icon: Languages },
@@ -162,10 +162,10 @@ function Results() {
           </motion.div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content Column */}
+
             <div className="lg:col-span-2 space-y-8">
 
-              {/* Summary */}
+
               <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <h2 className="text-2xl font-bold font-heading flex items-center gap-3">
@@ -180,7 +180,7 @@ function Results() {
                 </p>
               </motion.div>
 
-              {/* Generated Formal Complaint */}
+
               <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-floating border border-purple-100 dark:border-purple-900 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-orange-400" />
                 <h2 className="text-2xl font-bold mb-6 font-heading flex items-center gap-3">
@@ -243,14 +243,14 @@ function Results() {
                 </div>
               </motion.div>
 
-              {/* AI Submission Assistant */}
+
               {text.submissionAssistant && text.submissionAssistant.status && (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                   <h2 className="text-2xl font-bold mb-6 font-heading flex items-center gap-3">
                     <ListChecks className="text-purple-500" /> AI Submission Assistant
                   </h2>
 
-                  {/* Status & Score */}
+
                   <div className="flex flex-wrap items-center justify-between mb-8 p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-4">
                       <div className={`w-3.5 h-3.5 rounded-full ${text.submissionAssistant.readinessScore === 100 ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]' : 'bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.6)]'}`}></div>
@@ -264,7 +264,7 @@ function Results() {
                     </div>
                   </div>
 
-                  {/* Missing Requirements */}
+
                   {text.submissionAssistant.missingRequirements && text.submissionAssistant.missingRequirements.length > 0 && (
                     <div className="mb-8">
                       <h3 className="text-sm font-bold text-orange-500 mb-3 flex items-center gap-2 uppercase tracking-wide">
@@ -281,7 +281,7 @@ function Results() {
                   )}
 
                   <div className="grid md:grid-cols-2 gap-8 mb-8">
-                    {/* Left Column */}
+
                     <div className="space-y-8">
                       <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
                         <h3 className="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Official Department</h3>
@@ -310,7 +310,7 @@ function Results() {
                       </div>
                     </div>
 
-                    {/* Right Column */}
+
                     <div className="space-y-8">
                       <div>
                         <h3 className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wide">Submission Checklist</h3>
@@ -336,7 +336,7 @@ function Results() {
                     </div>
                   </div>
 
-                  {/* Footer Actions */}
+
                   <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center bg-slate-50 dark:bg-slate-900/30 p-6 rounded-2xl">
                     <div className="space-y-3 flex-1">
                       {text.submissionAssistant.expectedOutcome && (
@@ -365,10 +365,10 @@ function Results() {
 
             </div>
 
-            {/* Side Content Column */}
+
             <div className="space-y-8">
 
-              {/* Evidence & Visual Analysis */}
+
               {(!id && uploadedImage) || image ? (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                   <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2">
@@ -406,7 +406,7 @@ function Results() {
                 </motion.div>
               ) : null}
 
-              {/* Estimated Time */}
+
               {text.estimatedResolutionTime && (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700 flex items-center justify-between">
                   <div>
@@ -421,7 +421,7 @@ function Results() {
                 </motion.div>
               )}
 
-              {/* AI Recommended Actions */}
+
               {text.suggestedResolution && text.suggestedResolution.length > 0 && (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                   <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2">
@@ -437,7 +437,7 @@ function Results() {
                 </motion.div>
               )}
 
-              {/* Potential Risks */}
+
               {text.potentialRisks && text.potentialRisks.length > 0 && (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border border-red-100 dark:border-red-900/30">
                   <h2 className="text-xl font-bold mb-4 font-heading flex items-center gap-2 text-red-500">
@@ -453,7 +453,7 @@ function Results() {
                 </motion.div>
               )}
 
-              {/* Citizen Advisory */}
+
               {text.citizenAdvisory && (
                 <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-6 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                   <h2 className="text-xl font-bold mb-6 font-heading flex items-center gap-2">
@@ -493,9 +493,9 @@ function Results() {
 
           </div>
 
-          {/* Full Width Sections: Extracted Entities and Save Action */}
+
           <div className="mt-8 space-y-8">
-            {/* Extracted Entities */}
+
             {text.entities && text.entities.length > 0 && (
               <motion.div variants={fadeUp} className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-soft border-[3px] border-slate-100 dark:border dark:border-slate-700">
                 <h2 className="text-2xl font-bold mb-6 font-heading flex items-center gap-3">
@@ -542,7 +542,7 @@ function Results() {
               </motion.div>
             )}
 
-            {/* Final Save Action */}
+
             {!id && (
               <motion.div variants={fadeUp} className="flex justify-center pt-8 border-t border-slate-200 dark:border-slate-800">
                 <button

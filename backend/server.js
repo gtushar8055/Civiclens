@@ -6,10 +6,10 @@ const complaintRoutes = require("./routes/complaintRoutes");
 const authRoutes = require("./routes/authRoutes");
 const app = express();
 
-// Connect MongoDB
+
 connectDB();
 
-// Middleware
+
 app.use(express.json());
 app.use(cors());
 app.use("/api/auth", authRoutes);
@@ -20,7 +20,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Test Route
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Server
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server Running On Port : http://localhost:${PORT}`);
