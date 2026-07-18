@@ -5,7 +5,8 @@ import { useTheme } from "../context/ThemeContext";
 function Navbar() {
   const { isDark, toggleTheme } = useTheme();
   const isLoggedIn = !!localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const userStr = localStorage.getItem("user");
+  const user = userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
 
   return (
     <nav className="w-full z-50 pt-6 pb-4">

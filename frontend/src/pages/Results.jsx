@@ -47,7 +47,8 @@ function Results() {
     };
 
     if (!id) {
-      const stored = JSON.parse(sessionStorage.getItem("analysis"));
+      const item = sessionStorage.getItem("analysis");
+      const stored = item && item !== "undefined" ? JSON.parse(item) : null;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnalysis(stored);
       if (stored?.textAnalysis?.draftComplaint) {
