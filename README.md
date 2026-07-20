@@ -35,10 +35,18 @@ The project follows a **production-ready microservice architecture**, where the 
 * Estimated Resolution Time Prediction
 
 
+#### 📊 AI Submission Assistant & Readiness Score
+
+* Evaluates complaint completeness with an AI Readiness Score
+* Identifies missing requirements and necessary documents for official submission
+* Provides actionable, step-by-step submission guidance
+
+
 #### 🏢 Intelligent Department Recommendation
 
 * Automatically identifies the most relevant government department
 * Generates explanation for department selection
+* Recommends specific official government portals with direct navigation links
 * Eliminates manual complaint routing
   
 
@@ -47,6 +55,7 @@ The project follows a **production-ready microservice architecture**, where the 
 * Generates professionally formatted complaint letters
 * Formal government-ready language
 * Includes complaint subject and detailed body
+* Editable interface to review and modify the AI-generated letter before copying
 * Reduces manual drafting effort
 
 
@@ -61,7 +70,7 @@ The project follows a **production-ready microservice architecture**, where the 
 
 #### 📂 Complaint History Management
 
-* Secure complaint storage
+* Secure cloud-synced complaint storage
 * View previously analyzed complaints
 * Access complete AI reports anytime
 
